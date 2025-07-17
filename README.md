@@ -2,6 +2,8 @@
 
 AI-powered platform that helps UK businesses discover government contracts, grants, and opportunities they're missing.
 
+🚀 **Live Demo**: https://rowbot1.github.io/uk-govwatch-pro/
+
 ## Overview
 
 UK GovWatch Pro monitors 350+ UK government sources including national databases and all local councils to find relevant opportunities for your business. No more missing out on valuable contracts because they were hidden on obscure council websites.
