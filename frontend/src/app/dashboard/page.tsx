@@ -247,9 +247,9 @@ export default function Dashboard() {
 
               <div className="flex justify-between items-center">
                 <div className="flex gap-2">
-                  <button className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">
+                  <Link href={`/opportunity/${opp.id}`} className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 inline-block">
                     View Details
-                  </button>
+                  </Link>
                   <button className="px-4 py-2 border rounded hover:bg-gray-50">
                     Save
                   </button>

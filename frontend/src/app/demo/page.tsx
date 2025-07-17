@@ -245,9 +245,9 @@ export default function Demo() {
                       {opp.type}
                     </span>
                   </div>
-                  <button className="text-blue-600 font-semibold hover:underline">
+                  <Link href={`/opportunity/${opp.id}`} className="text-blue-600 font-semibold hover:underline">
                     View Details →
-                  </button>
+                  </Link>
                 </div>
               </div>
             ))}
