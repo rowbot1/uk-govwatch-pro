@@ -1,12 +1,13 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
-  output: 'standalone',
+  output: 'export',
+  basePath: process.env.NODE_ENV === 'production' ? '/uk-govwatch-pro' : '',
   env: {
-    NEXT_PUBLIC_API_URL: process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000',
+    NEXT_PUBLIC_API_URL: process.env.NEXT_PUBLIC_API_URL || 'https://api.ukgovwatchpro.com',
   },
   images: {
-    domains: ['localhost'],
+    unoptimized: true,
   },
 }
 
