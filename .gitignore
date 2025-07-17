@@ -65,7 +65,9 @@ htmlcov/
 # Production
 /build
 /dist
-/.next
+.next/
+/frontend/.next
+/frontend/out
 .vercel
 
 # Deployment
