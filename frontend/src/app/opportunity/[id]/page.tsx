@@ -1,14 +1,8 @@
 import OpportunityDetailClient from './OpportunityDetailClient'
 
 export async function generateStaticParams() {
-  // Generate static paths for demo opportunities
-  return [
-    { id: '1' },
-    { id: '2' },
-    { id: '3' },
-    { id: '4' },
-    { id: '5' }
-  ]
+  // Generate static paths for all demo opportunities
+  return Array.from({ length: 22 }, (_, i) => ({ id: String(i + 1) }))
 }
 
 export default function OpportunityDetail({ params }: { params: { id: string } }) {

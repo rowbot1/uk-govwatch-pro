@@ -1,95 +1,84 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Link from 'next/link'
+import { mockOpportunities, getUpcomingOpportunities, getOpportunitiesByLocation, getOpportunitiesByCategory } from '@/lib/mock-data'
+import { BusinessProfile, matchOpportunities, Opportunity } from '@/lib/opportunity-matcher'
+
+// Extended opportunity type for display
+interface DisplayOpportunity extends Opportunity {
+  daysLeft: number
+  status: 'urgent' | 'new' | 'normal'
+  type: 'Grant' | 'Framework' | 'Contract'
+}
 
 export default function Dashboard() {
   const [activeTab, setActiveTab] = useState('all')
   const [showFilters, setShowFilters] = useState(false)
-
-  const stats = {
-    total: 127,
-    new: 23,
-    expiring: 12,
-    local: 42,
-    grants: 34,
-    totalValue: '£8.4M'
+  const [filteredOpps, setFilteredOpps] = useState<DisplayOpportunity[]>([])
+  
+  // Demo business profile (would come from user session in real app)
+  const demoProfile: BusinessProfile = {
+    name: 'Demo Tech Solutions',
+    type: 'technology',
+    industry: 'IT Services',
+    location: 'Manchester',
+    size: 'small',
+    experience: '5',
+    certifications: ['ISO 27001', 'Cyber Essentials'],
+    previousContracts: []
   }
 
-  const opportunities = [
-    {
-      id: 1,
-      title: 'Digital Transformation Services',
-      source: 'Department for Education',
-      type: 'Framework',
-      value: '£5M',
-      deadline: '2024-08-15',
-      daysLeft: 28,
-      match: 94,
-      status: 'new',
-      location: 'National',
-      category: 'Technology'
-    },
-    {
-      id: 2,
-      title: 'Website Development - Manchester Libraries',
-      source: 'Manchester City Council',
-      type: 'Contract',
-      value: '£85,000',
-      deadline: '2024-07-25',
-      daysLeft: 7,
-      match: 97,
-      status: 'urgent',
-      location: 'Manchester',
-      category: 'Technology'
-    },
-    {
-      id: 3,
-      title: 'Innovation Grant - Digital Health',
-      source: 'Innovate UK',
-      type: 'Grant',
-      value: 'Up to £250,000',
-      deadline: '2024-08-30',
-      daysLeft: 43,
-      match: 82,
-      status: 'new',
-      location: 'National',
-      category: 'Healthcare'
-    },
-    {
-      id: 4,
-      title: 'Cyber Security Assessment',
-      source: 'NHS Digital',
-      type: 'Contract',
-      value: '£320,000',
-      deadline: '2024-07-22',
-      daysLeft: 4,
-      match: 78,
-      status: 'urgent',
-      location: 'National',
-      category: 'Security'
-    },
-    {
-      id: 5,
-      title: 'Business Growth Grant',
-      source: 'Greater Manchester Combined Authority',
-      type: 'Grant',
-      value: 'Up to £50,000',
-      deadline: '2024-09-15',
-      daysLeft: 59,
-      match: 91,
-      status: 'normal',
-      location: 'Manchester',
-      category: 'Business Support'
-    }
-  ]
+  // Get matched opportunities
+  const matchedOpps = matchOpportunities(demoProfile, mockOpportunities)
+  
+  // Calculate stats
+  const stats = {
+    total: matchedOpps.length,
+    new: matchedOpps.filter(o => {
+      const days = Math.ceil((new Date(o.deadline).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24))
+      return days > 20
+    }).length,
+    expiring: getUpcomingOpportunities(7).length,
+    local: matchedOpps.filter(o => o.location.toLowerCase().includes(demoProfile.location.toLowerCase())).length,
+    grants: matchedOpps.filter(o => o.category.toLowerCase().includes('grant') || o.title.toLowerCase().includes('grant')).length,
+    totalValue: `£${(matchedOpps.reduce((sum, opp) => {
+      const value = parseInt(opp.value.replace(/[£,km]/g, ''))
+      const multiplier = opp.value.includes('k') ? 1000 : opp.value.includes('m') ? 1000000 : 1
+      return sum + (value * multiplier)
+    }, 0) / 1000000).toFixed(1)}M`
+  }
 
-  const filteredOpportunities = opportunities.filter(opp => {
-    if (activeTab === 'urgent') return opp.status === 'urgent'
-    if (activeTab === 'grants') return opp.type === 'Grant'
-    if (activeTab === 'local') return opp.location !== 'National'
-    return true
+  // Process opportunities for display
+  const opportunities: DisplayOpportunity[] = matchedOpps.map(opp => {
+    const deadline = new Date(opp.deadline)
+    const daysLeft = Math.ceil((deadline.getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24))
+    
+    return {
+      ...opp,
+      daysLeft,
+      status: daysLeft <= 7 ? 'urgent' : daysLeft > 20 ? 'new' : 'normal',
+      type: opp.category.includes('Grant') || opp.title.includes('Grant') ? 'Grant' : 
+            opp.category.includes('Framework') || opp.title.includes('Framework') ? 'Framework' : 'Contract'
+    }
   })
+
+  useEffect(() => {
+    let filtered = opportunities
+    
+    if (activeTab === 'urgent') {
+      filtered = opportunities.filter(opp => opp.status === 'urgent')
+    } else if (activeTab === 'grants') {
+      filtered = opportunities.filter(opp => opp.type === 'Grant')
+    } else if (activeTab === 'local') {
+      filtered = opportunities.filter(opp => 
+        opp.location.toLowerCase().includes(demoProfile.location.toLowerCase()) ||
+        opp.location.toLowerCase().includes('greater manchester')
+      )
+    }
+    
+    setFilteredOpps(filtered.slice(0, 10)) // Show top 10
+  }, [activeTab, opportunities, demoProfile.location])
 
   return (
     <main className="min-h-screen bg-gray-50">
@@ -213,9 +202,18 @@ export default function Dashboard() {
           )}
         </div>
 
+        {/* Alert for high matches */}
+        {opportunities.filter(o => o.matchScore && o.matchScore >= 90 && o.daysLeft <= 7).length > 0 && (
+          <div className="bg-red-50 border border-red-200 p-4 rounded-lg mb-6">
+            <p className="text-red-800">
+              <strong>⚠️ Action Required:</strong> You have {opportunities.filter(o => o.matchScore && o.matchScore >= 90 && o.daysLeft <= 7).length} high-match opportunities closing soon!
+            </p>
+          </div>
+        )}
+
         {/* Opportunities List */}
         <div className="space-y-4">
-          {filteredOpportunities.map(opp => (
+          {filteredOpps.map(opp => (
             <div key={opp.id} className="bg-white p-6 rounded-lg shadow-sm hover:shadow-md transition">
               <div className="flex justify-between items-start mb-3">
                 <div className="flex-1">
@@ -242,8 +240,19 @@ export default function Dashboard() {
                 <span>📍 {opp.location}</span>
                 <span>📁 {opp.category}</span>
                 <span>📄 {opp.type}</span>
-                <span>🎯 {opp.match}% match</span>
+                <span className={`font-medium ${
+                  (opp.matchScore || 0) >= 80 ? 'text-green-600' :
+                  (opp.matchScore || 0) >= 60 ? 'text-blue-600' :
+                  'text-gray-600'
+                }`}>🎯 {opp.matchScore || 0}% match</span>
               </div>
+
+              {/* Match reasons */}
+              {opp.matchReasons && opp.matchReasons.length > 0 && (
+                <div className="mb-3 text-sm text-green-700 bg-green-50 p-2 rounded">
+                  ✓ {opp.matchReasons.join(' • ')}
+                </div>
+              )}
 
               <div className="flex justify-between items-center">
                 <div className="flex gap-2">
@@ -258,7 +267,7 @@ export default function Dashboard() {
                   </button>
                 </div>
                 <span className="text-sm text-gray-500">
-                  Deadline: {new Date(opp.deadline).toLocaleDateString()}
+                  Deadline: {new Date(opp.deadline).toLocaleDateString('en-GB')}
                 </span>
               </div>
             </div>

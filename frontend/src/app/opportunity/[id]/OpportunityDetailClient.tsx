@@ -2,59 +2,60 @@
 
 import Link from 'next/link'
 import { useState } from 'react'
+import { mockOpportunities } from '@/lib/mock-data'
 
 export default function OpportunityDetailClient({ params }: { params: { id: string } }) {
   const [activeTab, setActiveTab] = useState('overview')
 
-  // Mock opportunity data - in real app would fetch by ID
+  // Get opportunity from mock data
+  const baseOpportunity = mockOpportunities.find(o => o.id === params.id) || mockOpportunities[0]
+  
+  // Calculate days left
+  const deadline = new Date(baseOpportunity.deadline)
+  const daysLeft = Math.ceil((deadline.getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24))
+  
+  // Enrich with additional detail data
   const opportunity = {
-    id: params.id,
-    title: 'Digital Transformation Services Framework',
-    reference: 'RM6263',
-    source: 'Crown Commercial Service',
-    buyer: 'Department for Education',
-    value: '£5,000,000',
-    type: 'Framework Agreement',
-    location: 'National',
-    published: '2024-06-15',
-    deadline: '2024-08-15',
-    daysLeft: 28,
-    match: 94,
-    category: 'Technology',
-    description: 'The Department for Education is seeking suppliers to join a new framework agreement for digital transformation services. This includes cloud migration, legacy system modernization, user experience design, and agile delivery services.',
-    keyRequirements: [
-      'ISO 27001 certification required',
-      'Minimum £10M annual turnover',
-      'Experience with public sector digital transformation',
-      'Agile delivery capability',
-      'UK-based support team'
+    ...baseOpportunity,
+    reference: `RM${6000 + parseInt(params.id)}`,
+    buyer: baseOpportunity.source.includes('Council') ? baseOpportunity.source : 'HM Government',
+    type: baseOpportunity.category.includes('Grant') ? 'Grant' : 
+          baseOpportunity.title.includes('Framework') ? 'Framework Agreement' : 'Contract',
+    published: new Date(Date.now() - (30 + daysLeft) * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+    daysLeft,
+    match: 85 + Math.floor(Math.random() * 15), // Demo match score
+    keyRequirements: baseOpportunity.requirements || [
+      'Relevant industry experience',
+      'Quality management systems in place',
+      'Financial stability demonstrated',
+      'UK-based delivery capability',
+      'Required certifications and accreditations'
     ],
     scope: [
-      'Cloud migration and infrastructure',
-      'Application modernization',
-      'User research and design',
-      'Agile coaching and delivery',
-      'Technical architecture',
-      'Cyber security services'
+      'Primary service delivery',
+      'Quality assurance and compliance',
+      'Regular reporting and communication',
+      'Continuous improvement initiatives',
+      'Stakeholder engagement',
+      'Risk management'
     ],
     evaluationCriteria: {
       'Technical Capability': 40,
-      'Experience': 30,
-      'Price': 20,
+      'Experience & Track Record': 25,
+      'Price': 25,
       'Social Value': 10
     },
-    documents: [
-      { name: 'Invitation to Tender', size: '2.4 MB', type: 'PDF' },
-      { name: 'Framework Agreement', size: '1.8 MB', type: 'PDF' },
-      { name: 'Pricing Schedule', size: '245 KB', type: 'XLSX' },
-      { name: 'Technical Requirements', size: '3.2 MB', type: 'PDF' }
-    ],
+    documents: baseOpportunity.documents.map(doc => ({
+      name: doc,
+      size: `${Math.floor(Math.random() * 3000 + 200)} KB`,
+      type: doc.endsWith('.pdf') ? 'PDF' : doc.endsWith('.xlsx') ? 'XLSX' : 'DOCX'
+    })),
     timeline: [
-      { date: '2024-06-15', event: 'Opportunity Published' },
-      { date: '2024-07-01', event: 'Clarification Questions Deadline' },
-      { date: '2024-08-15', event: 'Submission Deadline' },
-      { date: '2024-09-01', event: 'Evaluation Period Begins' },
-      { date: '2024-10-01', event: 'Contract Award' }
+      { date: new Date(Date.now() - (30 + daysLeft) * 24 * 60 * 60 * 1000).toISOString().split('T')[0], event: 'Opportunity Published' },
+      { date: new Date(Date.now() - (15 + daysLeft) * 24 * 60 * 60 * 1000).toISOString().split('T')[0], event: 'Clarification Questions Deadline' },
+      { date: baseOpportunity.deadline, event: 'Submission Deadline' },
+      { date: new Date(deadline.getTime() + 14 * 24 * 60 * 60 * 1000).toISOString().split('T')[0], event: 'Evaluation Period Begins' },
+      { date: new Date(deadline.getTime() + 45 * 24 * 60 * 60 * 1000).toISOString().split('T')[0], event: 'Contract Award' }
     ]
   }
 
