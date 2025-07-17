@@ -12,18 +12,18 @@ export default function Home() {
             We monitor 350+ sources including all local councils.
           </p>
           <div className="flex gap-4 justify-center">
-            <button className="bg-blue-600 text-white px-8 py-3 rounded-lg font-semibold hover:bg-blue-700 transition">
-              Get Started Free
-            </button>
-            <button className="border border-gray-300 px-8 py-3 rounded-lg font-semibold hover:bg-gray-50 transition">
-              View Demo
-            </button>
+            <a href="/demo" className="bg-blue-600 text-white px-8 py-3 rounded-lg font-semibold hover:bg-blue-700 transition inline-block">
+              Try Live Demo
+            </a>
+            <a href="#features" className="border border-gray-300 px-8 py-3 rounded-lg font-semibold hover:bg-gray-50 transition inline-block">
+              Learn More
+            </a>
           </div>
         </div>
       </div>
 
       {/* Features */}
-      <div className="bg-white py-16">
+      <div id="features" className="bg-white py-16">
         <div className="container mx-auto px-4">
           <h2 className="text-3xl font-bold text-center mb-12">
             Complete UK Opportunity Discovery
@@ -93,9 +93,9 @@ export default function Home() {
           <p className="text-lg mb-8 opacity-90">
             Join businesses winning more government contracts
           </p>
-          <button className="bg-white text-blue-600 px-8 py-3 rounded-lg font-semibold hover:bg-gray-100 transition">
-            Get Started Free
-          </button>
+          <a href="/demo" className="bg-white text-blue-600 px-8 py-3 rounded-lg font-semibold hover:bg-gray-100 transition inline-block">
+            Try Demo Now
+          </a>
         </div>
       </div>
     </main>
